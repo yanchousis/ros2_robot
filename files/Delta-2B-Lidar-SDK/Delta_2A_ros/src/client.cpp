@@ -9,31 +9,30 @@
 *
 */
 
-#include "ros/ros.h"
-#include "sensor_msgs/LaserScan.h"
+#include "rclcpp/rclcpp.hpp"
+#include "sensor_msgs/msg/laser_scan.hpp"
 
 #define RAD2DEG(x) ((x)*180./M_PI)
 
-void scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan)
+void scanCallback(const sensor_msgs::msg::LaserScan::SharedPtr scan)
 {
     int count = scan->scan_time / scan->time_increment;
-//    ROS_INFO("I heard a laser scan %s[%d]:", scan->header.frame_id.c_str(), count);
-//    ROS_INFO("angle_range, %f, %f", RAD2DEG(scan->angle_min), RAD2DEG(scan->angle_max));
-  
+   
     for(int i = 0; i < count; i++) {
         float degree = RAD2DEG(scan->angle_min + scan->angle_increment * i);
-//        ROS_INFO(": [%f, %f]", degree, scan->ranges[i]);
     }
 }
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "delta_2b_lidar_node_client");
-    ros::NodeHandle n;
+    rclcpp::init(argc, argv);
+    auto node = rclcpp::Node::make_shared("delta_2b_lidar_node_client");
 
-    ros::Subscriber sub = n.subscribe<sensor_msgs::LaserScan>("/scan", 1000, scanCallback);
+    auto sub = node->create_subscription<sensor_msgs::msg::LaserScan>(
+        "/scan", 1000, scanCallback);
 
-    ros::spin();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
 
     return 0;
 }
