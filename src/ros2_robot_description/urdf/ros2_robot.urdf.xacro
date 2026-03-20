@@ -257,4 +257,29 @@
     <origin xyz="0 -0.0375 0" rpy="3.1415 0 0"/>
   </joint>
 
+  <!-- Lidar -->
+  <link name="lidar_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.035" length="0.025"/> 
+        <!-- поменять радиус и высоту -->
+      </geometry>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.035" length="0.025"/>
+        <!-- поменять радиус и высоту -->
+      </geometry>
+    </collision>
+  </link>
+	
+  <joint name="lidar_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="lidar_link"/>
+    <origin xyz="0.080 0 -0.020" rpy="0 0 0"/>
+  </joint>
+
 </robot>
