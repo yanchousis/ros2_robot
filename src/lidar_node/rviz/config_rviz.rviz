@@ -1,0 +1,141 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+    Help Height: 78
+    Property Tree Widget:
+      Expanded:
+        - /Global Options1
+        - /Status1
+        - /LaserScan1
+      Splitter Ratio: 0.5
+    Tree Height: 413
+
+  - Class: rviz_common/Selection
+    Name: Selection
+
+  - Class: rviz_common/Tool Properties
+    Name: Tool Properties
+    Expanded:
+      - /2D Pose Estimate1
+      - /2D Nav Goal1
+    Splitter Ratio: 0.588679
+
+  - Class: rviz_common/Views
+    Name: Views
+    Expanded:
+      - /Current View1
+    Splitter Ratio: 0.5
+
+  - Class: rviz_common/Time
+    Name: Time
+    SyncMode: 0
+    SyncSource: LaserScan
+
+Visualization Manager:
+  Class: ""
+  Enabled: true
+  Name: root
+
+  Global Options:
+    Background Color: 48; 48; 48
+    Fixed Frame: laser
+    Frame Rate: 30
+
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+      Enabled: true
+      Alpha: 0.5
+      Cell Size: 1
+      Color: 160; 160; 164
+      Plane: XY
+      Plane Cell Count: 10
+      Reference Frame: <Fixed Frame>
+      Line Style:
+        Value: Lines
+        Line Width: 0.03
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+
+    - Class: rviz_default_plugins/LaserScan
+      Name: LaserScan
+      Enabled: true
+      Topic: /scan
+
+      Alpha: 1
+      Style: Squares
+      Size (Pixels): 5
+      Size (m): 0.03
+
+      Color Transformer: AxisColor
+      Axis: Z
+      Channel Name: intensity
+
+      Use rainbow: true
+      Invert Rainbow: false
+
+      Min Intensity: 0
+      Max Intensity: 4096
+
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Value: true
+        Min Value: 0
+        Max Value: 0
+
+      Position Transformer: XYZ
+      Selectable: true
+      Queue Size: 1000
+      Decay Time: 0
+
+      # ВАЖНО для ROS2 (QoS)
+      Reliability Policy: Best Effort
+      Durability Policy: Volatile
+      History Policy: Keep Last
+      Depth: 10
+
+  Tools:
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Interact
+      Hide Inactive Objects: true
+    - Class: rviz_default_plugins/Select
+    - Class: rviz_default_plugins/SetInitialPose
+      Topic: /initialpose
+    - Class: rviz_default_plugins/SetGoal
+      Topic: /goal_pose
+
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Name: Current View
+
+      Distance: 11.1184
+      Pitch: 1.5698
+      Yaw: 4.92858
+
+      Focal Point:
+        X: -0.0344972
+        Y: 0.065886
+        Z: 0.148092
+
+      Near Clip Distance: 0.01
+      Target Frame: <Fixed Frame>
+
+Window Geometry:
+  Height: 626
+  Width: 1215
+  X: 55
+  Y: 14
+
+  Displays:
+    collapsed: false
+  Selection:
+    collapsed: false
+  Time:
+    collapsed: false
+  Tool Properties:
+    collapsed: false
+  Views:
+    collapsed: false
