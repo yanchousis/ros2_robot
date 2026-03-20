@@ -1,42 +1,38 @@
-#include <cmath>
-#include <memory>
+/*
+*  3iRoboticsLIDAR System II
+*  Driver Interface
+*
+*  Copyright 2017 3iRobotics
+*  All rights reserved.
+*
+*	Author: 3iRobotics, Data:2017-09-15
+*
+*/
 
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
 
-#define RAD2DEG(x) ((x) * 180.0 / M_PI)
+#define RAD2DEG(x) ((x)*180./M_PI)
 
-class LidarClientNode : public rclcpp::Node {
- public:
-  LidarClientNode() : Node("lidar_client") {
-    sub_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
-        "scan", rclcpp::SensorDataQoS(),
-        std::bind(&LidarClientNode::scan_callback, this,
-                  std::placeholders::_1));
-  }
-
- private:
-  void scan_callback(const sensor_msgs::msg::LaserScan::SharedPtr scan) {
-    const std::size_t count = scan->ranges.size();
-
-    for (std::size_t i = 0; i < count; ++i) {
-      float degree = RAD2DEG(scan->angle_min +
-                             scan->angle_increment * static_cast<float>(i));
-      (void)degree;
-      (void)scan->ranges[i];
-      // Здесь можно обработать точки скана
-      // RCLCPP_INFO(this->get_logger(), "deg=%.2f range=%.3f", degree,
-      // scan->ranges[i]);
+void scanCallback(const sensor_msgs::msg::LaserScan::SharedPtr scan)
+{
+    int count = scan->scan_time / scan->time_increment;
+   
+    for(int i = 0; i < count; i++) {
+        float degree = RAD2DEG(scan->angle_min + scan->angle_increment * i);
     }
-  }
+}
 
-  rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr sub_;
-};
+int main(int argc, char **argv)
+{
+    rclcpp::init(argc, argv);
+    auto node = rclcpp::Node::make_shared("delta_2b_lidar_node_client");
 
-int main(int argc, char** argv) {
-  rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<LidarClientNode>());
-  rclcpp::shutdown();
+    auto sub = node->create_subscription<sensor_msgs::msg::LaserScan>(
+        "/scan", 1000, scanCallback);
 
-  return 0;
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+
+    return 0;
 }
