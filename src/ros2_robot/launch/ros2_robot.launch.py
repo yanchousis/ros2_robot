@@ -14,7 +14,7 @@ def generate_launch_description():
     rviz_config_file = os.path.join(pkg_share, 'rviz', 'urdf.rviz')
 
     # 1) Генерируем Substitution для xacro -> urdf
-    robot_description_substitution = Command(['xacro', xacro_file])
+    robot_description_substitution = Command(['xacro ', xacro_file])
     # 2) Явно указываем, что это строка
     robot_description = ParameterValue(robot_description_substitution, value_type=str)
     # 3) Готовим словарь
@@ -58,6 +58,6 @@ def generate_launch_description():
     for node in nodes:
         ld.add_action(node)
     
-    ld.add_action(shutdown_timer)
+    # ld.add_action(shutdown_timer)
 
     return ld
