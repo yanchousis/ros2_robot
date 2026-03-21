@@ -15,8 +15,9 @@
 #define ENCR_B 5
 
 #define WHEEL_DIAMETER 70
-#define WHEEL_BASE 240
-#define TICKS_PER_REV 460 // 11 CRP * 30 GEAR * 4
+#define WHEEL_BASE 210
+#define TICKS_PER_REV 467
+#define DEADZONE 15
 
 #define TICKS_TO_MM (PI * WHEEL_DIAMETER / TICKS_PER_REV)
 
@@ -91,6 +92,11 @@ void computePID(float dt) {
   float targetL = target_v - target_w * WHEEL_BASE / 2.0;
   float targetR = target_v + target_w * WHEEL_BASE / 2.0;
 
+  if (abs(targetL) < 0.1 && abs(targetR) < 0.1) {
+    errL_i = 0;
+    errR_i = 0;
+  }
+
   float errL = targetL - v_left;
   float errR = targetR - v_right;
 
@@ -100,8 +106,14 @@ void computePID(float dt) {
   errL_i = constrain(errL_i, -100, 100);
   errR_i = constrain(errR_i, -100, 100);
 
-  float outL = constrain(Kp * errL + Ki * errL_i, -255, 255);
-  float outR = constrain(Kp * errR + Ki * errR_i, -255, 255);
+  float outL = Kp * errL + Ki * errL_i;
+  float outR = Kp * errR + Ki * errR_i;
+
+  if (abs(outL) < DEADZONE) outL = 0;
+  if (abs(outR) < DEADZONE) outR = 0;
+
+  outL = constrain(outL, -255, 255);
+  outR = constrain(outR, -255, 255);
 
   setMotor(EN_LEFT, IN1, IN2, outL);
   setMotor(EN_RIGHT, IN3, IN4, outR);
@@ -132,8 +144,8 @@ void readEnc1() {
 
 // энкодер 2
 void readEnc2() {
-  if (digitalRead(ENCR_A) == digitalRead(ENCR_B)) enc2++;
-  else enc2--;
+  if (digitalRead(ENCR_A) == digitalRead(ENCR_B)) enc2--;
+  else enc2++;
 }
 
 void stopRobot() {
