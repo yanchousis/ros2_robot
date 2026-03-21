@@ -16,8 +16,10 @@
 
 #define WHEEL_DIAMETER 70
 #define WHEEL_BASE 210
+#define WHEEL_OFFSET 41  // смещение колёс назад от центра (мм), изменить после измерения
 #define TICKS_PER_REV 467
 #define DEADZONE 15
+#define ACCEL_ALPHA 0.1  // 0.05-0.2, меньше = плавнее
 
 #define TICKS_TO_MM (PI * WHEEL_DIAMETER / TICKS_PER_REV)
 
@@ -28,6 +30,9 @@ float v_left = 0, v_right = 0;
 
 float target_v = 0;
 float target_w = 0;
+
+float filtered_v = 0;
+float filtered_w = 0;
 
 float Kp = 0.6;
 float Ki = 1.0;
@@ -42,6 +47,8 @@ unsigned long last_time = 0;
 
 void setup() {
   Serial.begin(115200);
+  while (!Serial) {}  // Ждём установления соединения
+  delay(500);         // Даём время на стабилизацию
 
   pinMode(EN_LEFT, OUTPUT);
   pinMode(IN1, OUTPUT);
@@ -76,11 +83,11 @@ void updateOdometry(float dt) {
   v_right = distR / dt;
 
   float ds = (distL + distR) / 2.0;
-  float dtheta = (distR - distL) / WHEEL_BASE;
+  float dtheta = (distR - distL) / (WHEEL_BASE + 2 * WHEEL_OFFSET);
 
   theta += dtheta;
-  x += ds * cos(theta);
-  y += ds * sin(theta);
+  x += ds * cos(theta + dtheta * WHEEL_OFFSET / WHEEL_BASE);
+  y += ds * sin(theta + dtheta * WHEEL_OFFSET / WHEEL_BASE);
 }
 
 void setVelocity(float linear, float angular) {
@@ -89,8 +96,11 @@ void setVelocity(float linear, float angular) {
 }
 
 void computePID(float dt) {
-  float targetL = target_v - target_w * WHEEL_BASE / 2.0;
-  float targetR = target_v + target_w * WHEEL_BASE / 2.0;
+  filtered_v += ACCEL_ALPHA * (target_v - filtered_v);
+  filtered_w += ACCEL_ALPHA * (target_w - filtered_w);
+
+  float targetL = filtered_v - filtered_w * WHEEL_BASE / 2.0;
+  float targetR = filtered_v + filtered_w * WHEEL_BASE / 2.0;
 
   if (abs(targetL) < 0.1 && abs(targetR) < 0.1) {
     errL_i = 0;
@@ -179,7 +189,7 @@ void readCommand() {
 
     if (cmd.startsWith("CMD")) {
       int i1 = cmd.indexOf(' ');
-      int i2 = cmd.indexOf(' ', i1 + 1);
+      int i2 = cmd.lastIndexOf(' ');
 
       float v = cmd.substring(i1 + 1, i2).toFloat();
       float w = cmd.substring(i2 + 1).toFloat();
@@ -187,6 +197,9 @@ void readCommand() {
       setVelocity(v * 1000.0, w); // м/с → мм/с
 
       Serial.println("OK");
+    } else if (cmd.length() > 0) {
+      Serial.print("ERR:");
+      Serial.println(cmd);
     }
   }
 }
