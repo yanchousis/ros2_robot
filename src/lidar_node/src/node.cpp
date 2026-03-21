@@ -42,7 +42,7 @@ public:
     {
         this->declare_parameter<std::string>("serial_port", "/dev/ttyUSB0");
         this->declare_parameter<std::string>("frame_id", "lidar_link");
-        this->declare_parameter<int>("rotation", 180);
+        this->declare_parameter<int>("rotation", 0);
 
         this->get_parameter("serial_port", opt_com_path_);
         this->get_parameter("frame_id", frame_id_);

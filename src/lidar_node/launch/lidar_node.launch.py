@@ -18,7 +18,7 @@ def generate_launch_description():
 
     rotation_arg = DeclareLaunchArgument(
         'rotation',
-        default_value='180',
+        default_value='97',
         description='Lidar rotation offset in degrees (180 for upside-down)'
     )
 
