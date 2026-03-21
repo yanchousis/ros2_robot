@@ -1,9 +1,7 @@
-// ЛЕВЫЙ мотор (колесо)
 #define EN_LEFT 11  // ШИМ-пин для регулировки скорости левого мотора
 #define IN1 9      // Направление вращения левого мотора (HIGH/LOW)
 #define IN2 8      // Направление вращения левого мотора (HIGH/LOW)
 
-// ПРАВЫЙ мотор (колесо)
 #define EN_RIGHT 10 // ШИМ-пин для регулировки скорости правого мотора
 #define IN3 12     // Направление вращения правого мотора (HIGH/LOW)
 #define IN4 13       // Направление вращения правого мотора (HIGH/LOW)
@@ -13,26 +11,6 @@
 
 #define ENCR_A 3
 #define ENCR_B 5
-
-#define WHEEL_DIAMETER 70
-#define WHEEL_BASE 240
-#define TICKS_PER_REV 460 // 11 CRP * 30 GEAR * 4
-
-#define TICKS_TO_MM (PI * WHEEL_DIAMETER / TICKS_PER_REV)
-
-float x = 0, y = 0, theta = 0;
-long last_enc1 = 0, last_enc2 = 0;
-
-float v_left = 0, v_right = 0;
-
-float target_v = 0;
-float target_w = 0;
-
-float Kp = 0.6;
-float Ki = 1.0;
-
-float errL_i = 0;
-float errR_i = 0;
 
 volatile long enc1 = 0;
 volatile long enc2 = 0;
@@ -61,67 +39,20 @@ void setup() {
   last_time = millis();
 }
 
-void updateOdometry(float dt) {
-  long d1 = enc1 - last_enc1;
-  long d2 = enc2 - last_enc2;
+void moveForward(int speed) {
+  analogWrite(EN_LEFT, speed);
+  analogWrite(EN_RIGHT, speed);
 
-  last_enc1 = enc1;
-  last_enc2 = enc2;
-
-  float distL = d1 * TICKS_TO_MM;
-  float distR = d2 * TICKS_TO_MM;
-
-  v_left = distL / dt;
-  v_right = distR / dt;
-
-  float ds = (distL + distR) / 2.0;
-  float dtheta = (distR - distL) / WHEEL_BASE;
-
-  theta += dtheta;
-  x += ds * cos(theta);
-  y += ds * sin(theta);
+  digitalWrite(IN1, HIGH); digitalWrite(IN2, LOW);
+  digitalWrite(IN3, HIGH); digitalWrite(IN4, LOW);
 }
 
-void setVelocity(float linear, float angular) {
-  target_v = linear;   // мм/с
-  target_w = angular;  // рад/с
-}
+void moveBackward(int speed) {
+  analogWrite(EN_LEFT, speed);
+  analogWrite(EN_RIGHT, speed);
 
-void computePID(float dt) {
-  float targetL = target_v - target_w * WHEEL_BASE / 2.0;
-  float targetR = target_v + target_w * WHEEL_BASE / 2.0;
-
-  float errL = targetL - v_left;
-  float errR = targetR - v_right;
-
-  errL_i += errL * dt;
-  errR_i += errR * dt;
-
-  errL_i = constrain(errL_i, -100, 100);
-  errR_i = constrain(errR_i, -100, 100);
-
-  float outL = constrain(Kp * errL + Ki * errL_i, -255, 255);
-  float outR = constrain(Kp * errR + Ki * errR_i, -255, 255);
-
-  setMotor(EN_LEFT, IN1, IN2, outL);
-  setMotor(EN_RIGHT, IN3, IN4, outR);
-}
-
-void setMotor(int en, int in1, int in2, float speed) {
-  int pwm = constrain(abs(speed), 0, 255);
-
-  analogWrite(en, pwm);
-
-  if (speed > 0) {
-    digitalWrite(in1, HIGH);
-    digitalWrite(in2, LOW);
-  } else if (speed < 0) {
-    digitalWrite(in1, LOW);
-    digitalWrite(in2, HIGH);
-  } else {
-    digitalWrite(in1, LOW);
-    digitalWrite(in2, LOW);
-  }
+  digitalWrite(IN1, LOW); digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, LOW); digitalWrite(IN4, HIGH);
 }
 
 // энкодер 1
@@ -136,6 +67,24 @@ void readEnc2() {
   else enc2--;
 }
 
+//// Функция: поворот налево (правое колесо вперёд, левое — остановлено)
+//void turnLeft(int speed) {
+//  analogWrite(EN_RIGHT, speed);
+//  analogWrite(EN_LEFT, 0); // Левое колесо остановлено
+//
+//  digitalWrite(IN3, HIGH); digitalWrite(IN4, LOW); // Правое — вперёд
+//  digitalWrite(IN1, LOW);  digitalWrite(IN2, LOW); // Левое — блокировка
+//}
+
+//// Функция: поворот направо (левое колесо вперёд, правое — остановлено)
+//void turnRight(int speed) {
+//  analogWrite(EN_LEFT, speed);
+//  analogWrite(EN_RIGHT, 0);
+//
+//  digitalWrite(IN1, HIGH); digitalWrite(IN2, LOW); // Левое — вперёд
+//  digitalWrite(IN3, LOW);  digitalWrite(IN4, LOW); // Правое — блокировка
+//}
+
 void stopRobot() {
   analogWrite(EN_LEFT, 0);
   analogWrite(EN_RIGHT, 0);
@@ -144,59 +93,28 @@ void stopRobot() {
   digitalWrite(IN3, LOW); digitalWrite(IN4, LOW);
 }
 
-void send_odometry(float dt) {
+void send_odometry() {
+  unsigned long current_time = millis();
+  float dt = (current_time - last_time) / 1000.0;
+  last_time = current_time;
+
+  noInterrupts();
+  long e1 = enc1;
+  long e2 = -enc2;
+  interrupts();
+
   Serial.print("ODOM ");
-  Serial.print(x / 1000.0, 3);
-  Serial.print(" ");
-  Serial.print(y / 1000.0, 3);
-  Serial.print(" ");
-  Serial.print(theta, 3);
-  Serial.print(" ");
-
-  Serial.print(v_left / 1000.0, 3);
-  Serial.print(" ");
-  Serial.print(v_right / 1000.0, 3);
-  Serial.print(" ");
-
-  Serial.println(dt, 3);
-}
-
-void readCommand() {
-  if (Serial.available()) {
-    String cmd = Serial.readStringUntil('\n');
-
-    if (cmd.startsWith("CMD")) {
-      int i1 = cmd.indexOf(' ');
-      int i2 = cmd.indexOf(' ', i1 + 1);
-
-      float v = cmd.substring(i1 + 1, i2).toFloat();
-      float w = cmd.substring(i2 + 1).toFloat();
-
-      setVelocity(v * 1000.0, w); // м/с → мм/с
-
-      Serial.println("OK");
-    }
-  }
+  Serial.print(e1);
+  Serial.print(",");
+  Serial.print(e2);
+  Serial.print(",");
+  Serial.print(dt, 4);
+  Serial.println("");
 }
 
 void loop() {
-  readCommand();
+  moveForward(50);
 
-  unsigned long now = millis();
-  float dt = (now - last_time) / 1000.0;
-
-  if (dt <= 0 || dt > 0.1) {
-    last_time = now;
-    return;
-  }
-
-  last_time = now;
-
-  updateOdometry(dt);
-  computePID(dt);
-
-  send_odometry(dt);
-
-//  Serial.println(enc2);
-  delay(50); // 20 Гц
+  send_odometry();
+  delay(50);
 }
