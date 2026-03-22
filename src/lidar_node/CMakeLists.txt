@@ -25,14 +25,14 @@ include_directories(
   ${lidar_node_SDK_PATH}/src
 )
 
-add_executable(lidar_node_node src/node.cpp ${lidar_node_SDK_SRC})
-ament_target_dependencies(lidar_node_node rclcpp sensor_msgs std_msgs)
-target_link_libraries(lidar_node_node rt)
+add_executable(lidar_node src/node.cpp ${lidar_node_SDK_SRC})
+ament_target_dependencies(lidar_node rclcpp sensor_msgs std_msgs)
+target_link_libraries(lidar_node rt)
 
-add_executable(lidar_node_node_client src/client.cpp)
-ament_target_dependencies(lidar_node_node_client rclcpp sensor_msgs)
+add_executable(lidar_node_client src/client.cpp)
+ament_target_dependencies(lidar_node_client rclcpp sensor_msgs)
 
-install(TARGETS lidar_node_node lidar_node_node_client
+install(TARGETS lidar_node lidar_node_client
   ARCHIVE DESTINATION lib/${PROJECT_NAME}
   LIBRARY DESTINATION lib/${PROJECT_NAME}
   RUNTIME DESTINATION lib/${PROJECT_NAME}

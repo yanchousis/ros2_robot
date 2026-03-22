@@ -24,7 +24,7 @@ def generate_launch_description():
 
     lidar_node_node = Node(
         package='lidar_node',
-        executable='lidar_node_node',
+        executable='lidar_node',
         name='lidar_node',
         parameters=[{
             'serial_port': LaunchConfiguration('serial_port'),
