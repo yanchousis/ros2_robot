@@ -55,7 +55,7 @@ void read_serial() {
           current_pos = i;
         }
         Serial.println("DONE");
-      }
+              }
     }
     else if (cmd == "P") {
       Serial.print("POS:");

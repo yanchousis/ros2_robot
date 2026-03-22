@@ -1,15 +1,18 @@
 #include <Servo.h>
 
-#define SERVO_PIN 6
+#define SERVO_PIN 9
 
-Servo servo;
+Servo servo;  // Создаем объект
 
 void setup() {
-  servo.attach(SERVO_PIN);
+  servo.attach(SERVO_PIN);   // Указываем объекту класса Servo, что серво присоединен к пину
 
-  int start_pos = 120;
-  servo.write(start_pos);
-  delay(1000);
+  servo.write(180);   // Выставляем начальное положение
+  delay(2000);
+//  servo.write(150); // Поворачиваем серво на 90 градусов
+//  delay(2000);
+//  servo.write(80);
+//  delay(2000);
 }
 
 void loop() {
