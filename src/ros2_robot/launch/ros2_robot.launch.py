@@ -68,7 +68,7 @@ def generate_launch_description():
         package='rviz2',
         executable='rviz2',
         name='rviz2',
-        arguments=['-d', rviz_config_file, '--disable-gpu'],
+        arguments=['-d', rviz_config_file],
         output='screen'
     )
 
