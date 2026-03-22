@@ -14,7 +14,7 @@ def generate_launch_description():
     pkg_ros2_robot = get_package_share_directory('ros2_robot')
     rviz_config_file = os.path.join(pkg_ros2_robot, 'config', 'rviz_params.rviz')
 
-    slam_params_file = '/home/user/ros2_robot/src/ros2_robot/config/slam_param.yaml'
+    slam_params_file = os.path.join(pkg_ros2_robot, 'config', 'slam_param.yaml')
 
     serial_port_arg = DeclareLaunchArgument(
         'serial_port',
@@ -68,7 +68,7 @@ def generate_launch_description():
         package='rviz2',
         executable='rviz2',
         name='rviz2',
-        arguments=['-d', rviz_config_file],
+        arguments=['-d', rviz_config_file, '--disable-gpu'],
         output='screen'
     )
 
