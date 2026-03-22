@@ -13,11 +13,8 @@ def generate_launch_description():
     xacro_file = os.path.join(pkg_share, 'urdf', 'ros2_robot.urdf.xacro')
     rviz_config_file = os.path.join(pkg_share, 'rviz', 'urdf.rviz')
 
-    # 1) Генерируем Substitution для xacro -> urdf
     robot_description_substitution = Command(['xacro ', xacro_file])
-    # 2) Явно указываем, что это строка
     robot_description = ParameterValue(robot_description_substitution, value_type=str)
-    # 3) Готовим словарь
     robot_description_param = {'robot_description': robot_description}
 
     nodes = [
