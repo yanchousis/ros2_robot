@@ -4,7 +4,7 @@ from launch import LaunchDescription
 from launch.substitutions import Command
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
-from launch.actions import DeclareLaunchArgument, ExecuteProcess
+from launch.actions import DeclareLaunchArgument, ExecuteProcess, TimerAction, LogInfo, Shutdown
 from launch.substitutions import LaunchConfiguration
 
 def generate_launch_description():
@@ -72,12 +72,29 @@ def generate_launch_description():
         output='screen'
     )
 
+    delayed_nodes = TimerAction(
+        period=5.0,
+        actions=[
+            robot_state_publisher_node,
+            joint_state_publisher_node,
+            odom_node,
+            slam_toolbox,
+            rviz_node,
+        ]
+    )
+
+    time_work = 90.0
+    shutdown_timer = TimerAction(
+        period=time_work,
+        actions=[
+            LogInfo(msg=f"Mission time ({time_work}s) completed. Shutting down..."),
+            Shutdown(reason='Mission complete')
+        ]
+    )
+
     return LaunchDescription([
         serial_port_arg,
-        robot_state_publisher_node,
-        joint_state_publisher_node,
-        odom_node,
         lidar_node,
-        slam_toolbox,
-        rviz_node,
+        delayed_nodes,
+        shutdown_timer,
     ])
